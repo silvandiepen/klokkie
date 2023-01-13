@@ -60,7 +60,6 @@ export const useState = () => {
     state.settings.type = value;
 
     const index = typeIndex(value);
-    console.log(index);
     state.timezones.forEach((tz) => {
       tz.type = index;
     });
@@ -95,6 +94,10 @@ export const useState = () => {
 
     setOnTop(state.settings.alwaysOnTop);
   };
+
+const isActiveSetting = (setting:string):boolean=>{
+  return state.settings[setting];
+}
 
   const settings = computed(() => {
     return state.settings;
@@ -217,7 +220,7 @@ export const useState = () => {
     setTimezone,
     removeTimezone,
     timezones,
-    isActiveTimezone,
+    isActiveTimezone,isActiveSetting,
     clearStorage,
   };
 };

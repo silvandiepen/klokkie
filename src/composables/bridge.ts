@@ -4,6 +4,7 @@ import { ipcRenderer } from "electron";
 import { useState } from "../../data/useState";
 //@ts-ignore
 import { menuEvents } from "../../data/menu";
+import { eventBus, EventChannel, EventType, EventData } from "./eventBus";
 
 const {
   toggleAlwaysOnTop,
@@ -32,5 +33,10 @@ export const loadBridge = () => {
   ipcRenderer.on(menuEvents.TOGGLE_TICKS, (_e, _a) => toggleTicks());
   ipcRenderer.on(menuEvents.ADD_TIMEZONE, (_e, data) => {
     setTimezone(data);
+  });
+  ipcRenderer.on(menuEvents.TOGGLE_SETTINGS, (_e, _a) => {
+    eventBus.emit(EventChannel.SETTINGS, {
+      type: EventType.SETTINGS_TOGGLE,
+    });
   });
 };

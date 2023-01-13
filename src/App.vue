@@ -5,7 +5,7 @@ import Settings from "./components/Settings.vue";
 import { useState } from "../data/useState";
 
 import { TimeType } from "./types";
-import { loadBridge } from "./composable/bridge";
+import { loadBridge } from "./composables/bridge";
 
 const { initStorage, timezones, settings } = useState();
 

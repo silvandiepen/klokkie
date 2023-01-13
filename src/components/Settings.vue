@@ -133,13 +133,19 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 //@ts-ignore
 import { useState } from "../../data/useState";
 import AddTimezone from "./AddTimezone.vue";
 import { reloadWindow } from "../renderer";
-
+import {
+  eventBus,
+  EventChannel,
+  EventType,
+  EventData,
+} from "../composables/eventBus";
 import { TimeType, AnalogClockType } from "../types";
+import { getEnvironmentData } from "worker_threads";
 
 const visible = ref(false);
 
@@ -164,6 +170,16 @@ window.addEventListener("keydown", (e) => {
     case "Escape":
       visible.value = false;
       break;
+  }
+});
+
+eventBus.on(EventChannel.SETTINGS, (data: EventData) => {
+  if (data.type == EventType.SETTINGS_TOGGLE) {
+    visible.value = !visible.value;
+  } else if (data.type == EventType.SETTINGS_OFF) {
+    visible.value = false;
+  } else if (data.type == EventType.SETTINGS_ON) {
+    visible.value = true;
   }
 });
 

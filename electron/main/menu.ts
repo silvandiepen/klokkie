@@ -4,10 +4,9 @@ import { useState } from "../../data/useState";
 import { continents, simpleTimezones } from "../../data/timezones";
 import { menuEvents } from "../../data/menu";
 
-const { isActiveTimezone } = useState();
+const { isActiveTimezone, isActiveSetting } = useState();
 
 const timezoneSubmenu: MenuItemConstructorOptions[] = [];
-
 
 continents().forEach((c) => {
   const continent: MenuItemConstructorOptions = {
@@ -30,51 +29,75 @@ continents().forEach((c) => {
   timezoneSubmenu.push(continent);
 });
 
-const developSubmenu: MenuItemConstructorOptions[]=[
+const developSubmenu: MenuItemConstructorOptions[] = [
   {
     label: "Open Devtools",
     click() {
       app.emit(menuEvents.OPEN_DEVTOOLS, {});
     },
   },
+  {
+    label: "Close Devtools",
+    click() {
+      app.emit(menuEvents.CLOSE_DEVTOOLS, {});
+    },
+  },
 ];
 const toggleSubmenu: MenuItemConstructorOptions[] = [
   {
     label: "Seconds",
+    type: "checkbox",
+    checked: isActiveSetting("showSeconds"),
     click() {
       app.emit(menuEvents.TOGGLE_SECONDS, {});
     },
   },
   {
     label: "Digital Clock",
+    type: "checkbox",
+    checked: isActiveSetting("showDigitalClock"),
     click() {
       app.emit(menuEvents.TOGGLE_DIGITAL_CLOCK, {});
     },
   },
   {
     label: "Label / Zone",
+    type: "checkbox",
+    checked: isActiveSetting("showLabel"),
     click() {
       app.emit(menuEvents.TOGGLE_LABEL, {});
     },
   },
   {
     label: "Analog Clock",
+    type: "checkbox",
+    checked: isActiveSetting("showAnalogClock"),
     click() {
       app.emit(menuEvents.TOGGLE_ANALOG_CLOCK, {});
     },
   },
   {
     label: "Analog Clock - Numbers",
+    type: "checkbox",
+    checked: isActiveSetting("showNumbers"),
     click() {
       app.emit(menuEvents.TOGGLE_NUMBERS, {});
     },
   },
   {
     label: "Analog Clock - Ticks",
+    type: "checkbox",
+    checked: isActiveSetting("showTicks"),
     click() {
       app.emit(menuEvents.TOGGLE_TICKS, {});
     },
   },
+{
+  label: "Toggle Settings",
+  click() {
+    app.emit(menuEvents.TOGGLE_SETTINGS, {});
+  },
+}
 ];
 
 export const createMenu = () => {
@@ -96,14 +119,17 @@ export const createMenu = () => {
       submenu: timezoneSubmenu,
     },
     {
-      label: "Toggle",
+      label: "Settings",
       submenu: toggleSubmenu,
     },
-    {
+  ];
+
+  if (process.env.VITE_DEV_SERVER_URL) {
+    template.push({
       label: "Develop",
       submenu: developSubmenu,
-    },
-  ];
+    });
+  }
   const menu = Menu.buildFromTemplate(template);
 
   Menu.setApplicationMenu(menu);

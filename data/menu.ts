@@ -10,5 +10,6 @@ export const menuEvents = {
     TOGGLE_ALWAYS_ON_TOP: "toggle-always-on-top",
     ADD_TIMEZONE: "add-timezone",
     OPEN_DEVTOOLS: 'main_open-devtools',
-    CLOSE_DEVTOOLS: 'main_close-devtools'
+    CLOSE_DEVTOOLS: 'main_close-devtools',
+    TOGGLE_SETTINGS: 'toggle-settings'
   };
