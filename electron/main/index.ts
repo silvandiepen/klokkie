@@ -1,6 +1,8 @@
 import { app, BrowserWindow, shell, ipcMain } from "electron";
 import { release } from "node:os";
 import { join } from "node:path";
+import { createMenu } from "./menu";
+import { menuEvents} from "../../data/menu"
 
 // The built directory structure
 //
@@ -55,19 +57,15 @@ async function createWindow() {
     },
   });
 
-  win.setAlwaysOnTop(true, "floating");
   win.setSheetOffset(0, 0);
   win.setSkipTaskbar(false);
 
-
   if (process.env.VITE_DEV_SERVER_URL) {
     win.loadURL(url);
-    // win.webContents.openDevTools()
+    win.webContents.openDevTools();
   } else {
     win.loadFile(indexHtml);
   }
-
-
 
   // Test actively push message to the Electron-Renderer
   win.webContents.on("did-finish-load", () => {
@@ -83,6 +81,7 @@ async function createWindow() {
 
 app.whenReady().then(() => {
   setTimeout(createWindow, 300);
+  createMenu();
 });
 
 app.on("window-all-closed", () => {
@@ -107,6 +106,19 @@ app.on("activate", () => {
   }
 });
 
+// Events for menu items
+Object.values(menuEvents).forEach((ev)=>{
+  if(ev.startsWith('main_')) return;
+  // @ts-ignore
+  app.on(ev,(e)=>{
+    win.webContents.send(ev,e);});
+});
+// @ts-ignore;
+app.on(menuEvents.OPEN_DEVTOOLS,()=>{
+  win.webContents.openDevTools();
+})
+
+
 // New window example arg: new windows url
 ipcMain.handle("open-win", (_, arg) => {
   const childWindow = new BrowserWindow({
@@ -125,13 +137,24 @@ ipcMain.handle("open-win", (_, arg) => {
 });
 
 ipcMain.on("set-size", (_, arg) => {
-  console.log("yeahhhh");
   win.setSize(arg.width, arg.height);
 });
 
-ipcMain.on('resize-me-now', (event, arg) => {
-  win.setSize(arg.width,arg.height)
-})
+ipcMain.on("resize-me-now", (event, arg) => {
+  win.setSize(arg.width, arg.height);
+});
+
+ipcMain.on("reload-me-now", (event, _arg) => {
+  win.webContents.reloadIgnoringCache();
+});
+
+ipcMain.on("set-on-top", (event, arg) => {
+  if (arg) {
+    win.setAlwaysOnTop(true, "floating");
+  } else {
+    win.setAlwaysOnTop(false);
+  }
+});
 
 // function setSize(){
 //   win.setSize(420,450)

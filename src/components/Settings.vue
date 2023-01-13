@@ -1,5 +1,5 @@
 <template>
-<button
+  <button
     @click="visible = !visible"
     class="settings__toggle"
     :class="visible ? `settings__toggle--active` : ``"
@@ -19,8 +19,18 @@
       </div>
       <div class="setting">
         <label for="setting-type">Type</label>
-        <select @change="($event) => setType(($event?.target as HTMLInputElement).value as TimeType)">
+        <select
+          @change="($event) => setType(($event?.target as HTMLInputElement).value as TimeType)"
+        >
           <option v-for="option in TimeType">{{ option }}</option>
+        </select>
+      </div>
+      <div class="setting">
+        <label for="setting-type">Analog Clock Type</label>
+        <select
+          @change="($event) => setAnalogClockType(($event?.target as HTMLInputElement).value as AnalogClockType)"
+        >
+          <option v-for="option in AnalogClockType">{{ option }}</option>
         </select>
       </div>
       <div class="setting">
@@ -37,13 +47,20 @@
         <input
           id="setting-font"
           type="range"
-          min="10"
-          max="30"
+          min="15"
+          max="50"
           step="1"
           :value="settings.size"
           @change="($event) => setSize(parseInt(($event?.target as HTMLInputElement).value) || 10)"
         />
         {{ settings.size }}
+      </div>
+      <div class="setting">
+        <sil-switch
+          label="Show seconds"
+          v-model="settings.showSeconds"
+          @input="() => toggleSeconds()"
+        ></sil-switch>
       </div>
       <div class="setting">
         <input
@@ -81,18 +98,74 @@
         />
         <label for="setting-digital">Show Digital clock</label>
       </div>
+      <div class="setting">
+        <input
+          id="setting-ticks"
+          type="checkbox"
+          v-model="settings.showTicks"
+          @input="() => toggleTicks()"
+        />
+        <label for="setting-ticks">Show Ticks</label>
+      </div>
+      <div class="setting">
+        <input
+          id="setting-numbers"
+          type="checkbox"
+          v-model="settings.showNumbers"
+          @input="() => toggleNumbers()"
+        />
+        <label for="setting-numbers">Show Numbers</label>
+      </div>
+      <div class="setting">
+        <input
+          id="setting-ontop"
+          type="checkbox"
+          v-model="settings.alwaysOnTop"
+          @input="() => toggleAlwaysOnTop()"
+        />
+        <label for="setting-ontop">Show Always on top</label>
+      </div>
+      <div class="setting">
+        <button @click="reset()">Reset</button>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from "vue";
-import { useStorage } from "../composable/useStorage";
+//@ts-ignore
+import { useState } from "../../data/useState";
 import AddTimezone from "./AddTimezone.vue";
+import { reloadWindow } from "../renderer";
 
-import { TimeType } from "../types";
+import { TimeType, AnalogClockType } from "../types";
 
 const visible = ref(false);
+
+const reset = () => {
+  clearStorage();
+  setTimeout(() => {
+    initStorage();
+    setTimeout(() => {
+      reloadWindow();
+    }, 100);
+  }, 100);
+};
+
+window.addEventListener("keydown", (e) => {
+  if (!visible.value) return;
+
+  e.preventDefault();
+
+  const keyName = e.key;
+
+  switch (keyName) {
+    case "Escape":
+      visible.value = false;
+      break;
+  }
+});
 
 const {
   settings,
@@ -100,11 +173,17 @@ const {
   setFont,
   setSize,
   setType,
+  setAnalogClockType,
   toggleSeconds,
   toggleDigitalClock,
   toggleAnalogClock,
   toggleLabel,
-} = useStorage();
+  toggleTicks,
+  toggleNumbers,
+  toggleAlwaysOnTop,
+  clearStorage,
+  initStorage,
+} = useState();
 </script>
 
 <style lang="scss">
@@ -114,6 +193,7 @@ const {
   height: 100%;
   top: 0;
   left: 0;
+  z-index: 5;
 
   display: flex;
   align-items: center;
@@ -130,6 +210,7 @@ const {
       pointer-events: all;
     }
     .settings__toggle {
+      opacity: 1;
     }
   }
   &__background {
@@ -150,10 +231,10 @@ const {
     bottom: 0;
     right: 0;
     border-radius: 50%;
-    margin: 1em;
+    margin: 0.5em;
     line-height: 1em;
     z-index: 5;
-    opacity: 0.5;
+    opacity: 0.25;
     padding: 0;
     border: none;
     &::before {

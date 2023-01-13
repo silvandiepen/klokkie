@@ -6,7 +6,8 @@ import AnalogClock from "./AnalogClock.vue";
 import DigitalClock from "./DigitalClock.vue";
 import { Time, TimeType } from "../types";
 
-import { useStorage } from "../composable/useStorage";
+//@ts-ignore
+import { useState } from "../../data/useState";
 
 const props = defineProps({
   timezone: {
@@ -15,7 +16,7 @@ const props = defineProps({
   },
   label: {
     type: String,
-    default: "local",
+    default: null
   },
   type: {
     type: String as PropType<TimeType>,
@@ -30,7 +31,7 @@ const time = reactive<Time>({
 });
 
 const selected = ref(false);
-const { removeTimezone, settings, changeType } = useStorage();
+const { removeTimezone, settings, changeType } = useState();
 
 const { bemm, classes } = useBemm("time");
 // const label = ref("");
@@ -58,13 +59,22 @@ const select = () => {
 
 onMounted(() => {
   window.addEventListener("keydown", (e) => {
-    if (selected.value && e.keyCode == 8) {
-      e.preventDefault();
-      removeTimezone({ label: props.label, value: props.timezone });
-    }
-    if (selected.value && e.keyCode == 32) {
-      e.preventDefault();
-      changeType(props.label);
+    if (!selected.value) return;
+
+    e.preventDefault();
+
+    const keyName = e.key;
+
+    switch (keyName) {
+      case "Backspace":
+        removeTimezone({ label: props.label, value: props.timezone });
+        break;
+      case " ":
+        changeType(props.label ? props.label : null);
+        break;
+      case "Enter":
+        selected.value = false;
+        break;
     }
   });
 });
@@ -152,7 +162,7 @@ body {
     }
   }
   &--small {
-    font-size: .85em;
+    font-size: 0.85em;
     display: flex;
     flex-direction: row;
     width: 50%;
@@ -195,6 +205,39 @@ body {
     // flex-direction: row-reverse;
   }
 
+  &--huge {
+    flex-direction: column-reverse;
+    width: 100%;
+    min-width: 20em;
+    display: inline-flex;
+    .time__clocks {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .time__clocks {
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .time__digital {
+      // position: absolute;
+      // left: calc(50% + 3em);
+      flex-shrink: 0;
+      padding: 0.5em;
+      // color: black;
+      font-size: 2em;
+    }
+    .time__analog {
+      font-size: 10em;
+      flex-shrink: 0;
+    }
+    .time__zone {
+      flex-shrink: 0;
+      font-size: 1em;
+      text-align: center;
+    }
+  }
   &--selected {
     @at-root {
       @keyframes jiggle {

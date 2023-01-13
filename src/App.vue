@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import Time from "./components/Time.vue";
 import Settings from "./components/Settings.vue";
-import { useStorage } from "./composable/useStorage";
+//@ts-ignore
+import { useState } from "../data/useState";
 
 import { TimeType } from "./types";
-import { onMounted } from "vue";
+import { loadBridge } from "./composable/bridge";
 
-const { initStorage, timezones, settings } = useStorage();
+const { initStorage, timezones, settings } = useState();
 
 const getType = (typeIndex: number): TimeType => {
   let type = "";
@@ -19,8 +20,8 @@ const getType = (typeIndex: number): TimeType => {
   return type as TimeType;
 };
 
-
 initStorage();
+loadBridge();
 </script>
 
 <template>
@@ -61,8 +62,10 @@ html {
   top: 0;
   left: 0;
   font-size: var(--size, 16px);
-  width: 100%;
-  display: flex; flex-wrap: wrap;
+  display: flex;
+  flex-wrap: wrap;
+  width: fit-content;
+  min-width: 100%;
 }
 
 * {

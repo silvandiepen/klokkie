@@ -16,10 +16,11 @@
 import { PropType } from "vue";
 import { useBemm } from "bemm";
 import { Time } from "../types";
-import { useStorage } from "../composable/useStorage";
+//@ts-ignore
+import { useState } from "../../data/useState";
 
 const { bemm, classes } = useBemm("digital-clock");
-const { settings } = useStorage();
+const { settings } = useState();
 
 const pad = (number: number, size = 2): string => {
   const l: number = `${number}`.length;

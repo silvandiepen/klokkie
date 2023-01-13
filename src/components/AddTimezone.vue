@@ -16,7 +16,7 @@
             (o) => o.continent == group.label
           )"
           :key="idx"
-          :value="option.value"
+          :value="option.combined"
         >
           {{ option.label }}
         </option>
@@ -36,60 +36,30 @@
 import { onMounted, ref } from "vue";
 import { useBemm } from "bemm";
 
-import { timezones } from "../data/timezones";
-import { useStorage } from "../composable/useStorage";
+//@ts-ignore
+import { simpleTimezones,continents } from "../../data/timezones";
+//@ts-ignore
+import { useState } from "../../data/useState";
 
-const { bemm, classes } = useBemm("timezone-selector");
+const { bemm } = useBemm("timezone-selector");
+
+const { setTimezone } = useState();
 
 interface Option {
   label: string;
   value: string;
   continent: string;
+  combined: string;
 }
 interface Group {
   label: string;
   value: string;
 }
 
-const options = ref<Option[]>([]);
-const groups = ref<Group[]>([]);
+const options = ref<Option[]>(simpleTimezones());
+const groups = ref<Group[]>(continents());
 const current = ref("");
 
-onMounted(() => {
-  options.value = timezones
-    .map((zone) => {
-      return zone.utc
-        .filter((z) => !z.startsWith("Etc") && z.includes("/"))
-        .map((z) => {
-          const label = z
-            .split("/")
-            [z.split("/").length - 1].replaceAll("_", " ");
-          return {
-            // label: z.split('/')[0],
-            label,
-            value: `${label}::${z}`,
-            continent: z.split("/")[0],
-          };
-        });
-    })
-    .flat()
-    .sort();
-
-  groups.value = options.value
-    .map((zone: Option) => ({
-      label: zone.continent,
-      value: "",
-    }))
-    .filter(
-      (value, index, self) =>
-        index ===
-        self.findIndex(
-          (t) => t.label === value.label && t.value === value.value
-        )
-    );
-});
-
-const { setTimezone } = useStorage();
 
 const addTimezone = () => {
   console.log("adding timezone", current.value);

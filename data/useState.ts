@@ -1,7 +1,8 @@
-import { returnValues } from "bemm/dist/useBemm";
 import { reactive, computed, watch } from "vue";
-import { resizeNow } from "../renderer";
-import { TimeType } from "../types";
+//@ts-ignore
+import { resizeNow, setOnTop } from "../src/renderer";
+//@ts-ignore
+import { TimeType, AnalogClockType } from "../src/types";
 const KEY = "KLOKKIE";
 
 interface Timezone {
@@ -15,8 +16,12 @@ interface State {
   settings: {
     font: string;
     type: TimeType;
+    analogClockType: AnalogClockType;
     size: number;
     separator: string;
+    alwaysOnTop: boolean;
+    showTicks: boolean;
+    showNumbers: boolean;
     showSeconds: boolean;
     showLabel: boolean;
     showAnalogClock: boolean;
@@ -29,8 +34,12 @@ const state = reactive<State>({
   settings: {
     font: "",
     type: TimeType.normal,
+    analogClockType: AnalogClockType.minimal,
     size: 16,
     separator: ":",
+    alwaysOnTop: false,
+    showTicks: false,
+    showNumbers: false,
     showSeconds: true,
     showLabel: true,
     showAnalogClock: true,
@@ -38,7 +47,7 @@ const state = reactive<State>({
   },
 });
 
-export const useStorage = () => {
+export const useState = () => {
   // Settings
 
   const setFont = (value: string) => {
@@ -49,18 +58,28 @@ export const useStorage = () => {
   };
   const setType = (value: TimeType) => {
     state.settings.type = value;
-    
+
     const index = typeIndex(value);
     console.log(index);
-    state.timezones.forEach((tz)=>{
-        tz.type = index;
-    })
+    state.timezones.forEach((tz) => {
+      tz.type = index;
+    });
+  };
+
+  const setAnalogClockType = (value: AnalogClockType) => {
+    state.settings.analogClockType = value;
   };
   const setSeparator = (value: string) => {
     state.settings.separator = value;
   };
   const toggleLabel = () => {
     state.settings.showLabel = !state.settings.showLabel;
+  };
+  const toggleTicks = () => {
+    state.settings.showTicks = !state.settings.showTicks;
+  };
+  const toggleNumbers = () => {
+    state.settings.showNumbers = !state.settings.showNumbers;
   };
   const toggleSeconds = () => {
     state.settings.showSeconds = !state.settings.showSeconds;
@@ -71,29 +90,36 @@ export const useStorage = () => {
   const toggleDigitalClock = () => {
     state.settings.showDigitalClock = !state.settings.showDigitalClock;
   };
+  const toggleAlwaysOnTop = () => {
+    state.settings.alwaysOnTop = !state.settings.alwaysOnTop;
+
+    setOnTop(state.settings.alwaysOnTop);
+  };
 
   const settings = computed(() => {
     return state.settings;
   });
 
-  const typeIndex = (label: string):number=>{
+  const typeIndex = (label: string): number => {
     let currentIndex = 0;
     state.timezones.forEach((tz, index) => {
       if (tz.label == label) currentIndex = index;
     });
     return currentIndex;
-  }
+  };
 
-  const changeType = (label: string) => {
-    const currentIndex = typeIndex(label);
+  const changeType = (label: string | null) => {
+    const currentIndex = label ? typeIndex(label) : 0;
     const newTypeIndex = (state.timezones[currentIndex].type || 0) + 1;
-    const newType = newTypeIndex > (Object.keys(TimeType).length - 1) ? 0 : newTypeIndex;
+    const newType =
+      newTypeIndex > Object.keys(TimeType).length - 1 ? 0 : newTypeIndex;
     state.timezones[currentIndex].type = newType;
   };
 
   // Timezone
 
   const setTimezone = (timezone: Partial<Timezone>) => {
+    console.log(timezone);
     state.timezones.push({
       label: timezone.label || "",
       value: timezone.value || "",
@@ -106,7 +132,11 @@ export const useStorage = () => {
       (tz) => tz.value !== timezone.value
     );
   };
-
+  const isActiveTimezone = (timezoneLabel: string):boolean => {
+    return !!state.timezones.find((tz) => {
+      tz.label == timezoneLabel;
+    });
+  };
   const timezones = computed(() => {
     return state.timezones;
   });
@@ -118,6 +148,14 @@ export const useStorage = () => {
   const initStorage = () => {
     Vault.forEach((v) => {
       loadStorage(v);
+    });
+  };
+
+  const clearStorage = () => {
+    Vault.forEach((v) => {
+      const store = `${KEY}_${v}`;
+      localStorage.removeItem(store);
+      console.log(`CLEAR STORAGE ::: ${store}`);
     });
   };
 
@@ -147,7 +185,7 @@ export const useStorage = () => {
     () => state.timezones,
     () => {
       saveStorage("TIMEZONES", state.timezones);
-      resizeNow()
+      resizeNow();
     },
     { deep: true }
   );
@@ -155,7 +193,7 @@ export const useStorage = () => {
     () => state.settings,
     () => {
       saveStorage("SETTINGS", state.settings);
-      resizeNow()
+      resizeNow();
     },
     { deep: true }
   );
@@ -166,14 +204,20 @@ export const useStorage = () => {
     setSeparator,
     setSize,
     setType,
+    setAnalogClockType,
     toggleAnalogClock,
     toggleDigitalClock,
     toggleLabel,
     toggleSeconds,
+    toggleTicks,
+    toggleNumbers,
+    toggleAlwaysOnTop,
     changeType,
     initStorage,
     setTimezone,
     removeTimezone,
     timezones,
+    isActiveTimezone,
+    clearStorage,
   };
 };
