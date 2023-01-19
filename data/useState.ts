@@ -1,6 +1,6 @@
 import { reactive, computed, watch } from "vue";
 //@ts-ignore
-import { resizeNow, setOnTop } from "../src/renderer";
+import { setOnTop } from "../src/renderer";
 //@ts-ignore
 import { TimeType, AnalogClockType } from "../src/types";
 const KEY = "KLOKKIE";
@@ -20,6 +20,7 @@ interface State {
     size: number;
     separator: string;
     alwaysOnTop: boolean;
+    lockedView: boolean;
     showTicks: boolean;
     showNumbers: boolean;
     showSeconds: boolean;
@@ -38,6 +39,7 @@ const state = reactive<State>({
     size: 16,
     separator: ":",
     alwaysOnTop: false,
+    lockedView: false,
     showTicks: false,
     showNumbers: false,
     showSeconds: true,
@@ -89,15 +91,18 @@ export const useState = () => {
   const toggleDigitalClock = () => {
     state.settings.showDigitalClock = !state.settings.showDigitalClock;
   };
+  const toggleLockedView = () => {
+    state.settings.lockedView = !state.settings.lockedView;
+  };
   const toggleAlwaysOnTop = () => {
     state.settings.alwaysOnTop = !state.settings.alwaysOnTop;
 
     setOnTop(state.settings.alwaysOnTop);
   };
 
-const isActiveSetting = (setting:string):boolean=>{
-  return state.settings[setting];
-}
+  const isActiveSetting = (setting: string): boolean => {
+    return state.settings[setting];
+  };
 
   const settings = computed(() => {
     return state.settings;
@@ -122,7 +127,6 @@ const isActiveSetting = (setting:string):boolean=>{
   // Timezone
 
   const setTimezone = (timezone: Partial<Timezone>) => {
-    console.log(timezone);
     state.timezones.push({
       label: timezone.label || "",
       value: timezone.value || "",
@@ -135,7 +139,7 @@ const isActiveSetting = (setting:string):boolean=>{
       (tz) => tz.value !== timezone.value
     );
   };
-  const isActiveTimezone = (timezoneLabel: string):boolean => {
+  const isActiveTimezone = (timezoneLabel: string): boolean => {
     return !!state.timezones.find((tz) => {
       tz.label == timezoneLabel;
     });
@@ -188,7 +192,7 @@ const isActiveSetting = (setting:string):boolean=>{
     () => state.timezones,
     () => {
       saveStorage("TIMEZONES", state.timezones);
-      resizeNow();
+      // resizeNow();
     },
     { deep: true }
   );
@@ -196,7 +200,7 @@ const isActiveSetting = (setting:string):boolean=>{
     () => state.settings,
     () => {
       saveStorage("SETTINGS", state.settings);
-      resizeNow();
+      // resizeNow();
     },
     { deep: true }
   );
@@ -215,12 +219,14 @@ const isActiveSetting = (setting:string):boolean=>{
     toggleTicks,
     toggleNumbers,
     toggleAlwaysOnTop,
+    toggleLockedView,
     changeType,
     initStorage,
     setTimezone,
     removeTimezone,
     timezones,
-    isActiveTimezone,isActiveSetting,
+    isActiveTimezone,
+    isActiveSetting,
     clearStorage,
   };
 };

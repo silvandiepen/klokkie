@@ -2,7 +2,7 @@ import { app, BrowserWindow, shell, ipcMain } from "electron";
 import { release } from "node:os";
 import { join } from "node:path";
 import { createMenu } from "./menu";
-import { menuEvents} from "../../data/menu"
+import { menuEvents } from "../../data/menu";
 
 // The built directory structure
 //
@@ -45,7 +45,7 @@ const indexHtml = join(process.env.DIST, "index.html");
 async function createWindow() {
   win = new BrowserWindow({
     title: "Klokkie",
-    icon: join(process.env.PUBLIC, "favicon.ico"),
+    icon: join(process.env.PUBLIC, "klokkie.icns"),
     frame: false,
     transparent: true,
     roundedCorners: true,
@@ -107,17 +107,17 @@ app.on("activate", () => {
 });
 
 // Events for menu items
-Object.values(menuEvents).forEach((ev)=>{
-  if(ev.startsWith('main_')) return;
+Object.values(menuEvents).forEach((ev) => {
+  if (ev.startsWith("main_")) return;
   // @ts-ignore
-  app.on(ev,(e)=>{
-    win.webContents.send(ev,e);});
+  app.on(ev, (e) => {
+    win.webContents.send(ev, e);
+  });
 });
 // @ts-ignore;
-app.on(menuEvents.OPEN_DEVTOOLS,()=>{
+app.on(menuEvents.OPEN_DEVTOOLS, () => {
   win.webContents.openDevTools();
-})
-
+});
 
 // New window example arg: new windows url
 ipcMain.handle("open-win", (_, arg) => {
@@ -138,6 +138,11 @@ ipcMain.handle("open-win", (_, arg) => {
 
 ipcMain.on("set-size", (_, arg) => {
   win.setSize(arg.width, arg.height);
+});
+
+ipcMain.on("toggle-devtools", (_, arg) => {
+  const isOpen = () => true;
+  isOpen() ? win.webContents.closeDevTools() : win.webContents.openDevTools();
 });
 
 ipcMain.on("resize-me-now", (event, arg) => {

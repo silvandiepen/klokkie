@@ -16,7 +16,7 @@ const props = defineProps({
   },
   label: {
     type: String,
-    default: null
+    default: null,
   },
   type: {
     type: String as PropType<TimeType>,
@@ -30,10 +30,11 @@ const time = reactive<Time>({
   seconds: 0,
 });
 
-const selected = ref(false);
 const { removeTimezone, settings, changeType } = useState();
-
 const { bemm, classes } = useBemm("time");
+
+const selected = ref(false);
+
 // const label = ref("");
 
 onMounted(() => {
@@ -54,7 +55,10 @@ onMounted(() => {
 });
 
 const select = () => {
-  selected.value = !selected.value;
+  if (settings.lockedView) return;
+  else {
+    selected.value = !selected.value;
+  }
 };
 
 onMounted(() => {

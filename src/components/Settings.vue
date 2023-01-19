@@ -6,43 +6,34 @@
   ></button>
   <div class="settings" :class="visible ? `settings--active` : ``">
     <div @click="visible = !visible" class="settings__background"></div>
+
     <div class="settings__container">
       <AddTimezone></AddTimezone>
-      <div class="setting">
-        <label for="setting-separator">Separator</label>
-        <input
-          id="setting-separator"
-          type="text"
+      <sil-stack style="-webkit-app-region: no-drag">
+        <sil-text
+          label="Separator"
           :value="settings.separator"
-          @input="($event) => setSeparator(($event?.target as HTMLInputElement).value || '')"
+          @input="(e:any) => setSeparator((e?.target as HTMLInputElement).value || '')"
         />
-      </div>
-      <div class="setting">
-        <label for="setting-type">Type</label>
-        <select
-          @change="($event) => setType(($event?.target as HTMLInputElement).value as TimeType)"
-        >
-          <option v-for="option in TimeType">{{ option }}</option>
-        </select>
-      </div>
-      <div class="setting">
-        <label for="setting-type">Analog Clock Type</label>
-        <select
-          @change="($event) => setAnalogClockType(($event?.target as HTMLInputElement).value as AnalogClockType)"
-        >
-          <option v-for="option in AnalogClockType">{{ option }}</option>
-        </select>
-      </div>
-      <div class="setting">
-        <label for="setting-font">Font</label>
-        <input
-          id="setting-font"
-          type="text"
+
+        <sil-select
+          label="Type"
+          .options="TimeOptions"
+          @input="doSomething()"
+        ></sil-select>
+
+        <sil-select
+          label="Analog Clock Type"
+          .options="ClockOptions"
+        ></sil-select>
+
+        <sil-text
+          label="Font"
           :value="settings.font"
-          @change="($event) => setFont(($event?.target as HTMLInputElement).value || '')"
-        />
-      </div>
-      <div class="setting" style="-webkit-app-region: no-drag">
+          @input="(e:any) => setFont((e?.target as HTMLInputElement).value || '')"
+        >
+        </sil-text>
+
         <label for="setting-size">Size</label>
         <input
           id="setting-font"
@@ -51,93 +42,70 @@
           max="50"
           step="1"
           :value="settings.size"
-          @change="($event) => setSize(parseInt(($event?.target as HTMLInputElement).value) || 10)"
+          @change="(e) => setSize(parseInt((e?.target as HTMLInputElement).value) || 10)"
         />
         {{ settings.size }}
-      </div>
-      <div class="setting">
+
         <sil-switch
           label="Show seconds"
-          v-model="settings.showSeconds"
+          :value="settings.showSeconds"
           @input="() => toggleSeconds()"
         ></sil-switch>
-      </div>
-      <div class="setting">
-        <input
-          id="setting-seconds"
-          type="checkbox"
-          v-model="settings.showSeconds"
-          @input="() => toggleSeconds()"
-        />
-        <label for="setting-seconds">Show seconds</label>
-      </div>
-      <div class="setting">
-        <input
-          id="setting-label"
-          type="checkbox"
-          v-model="settings.showLabel"
+
+        <sil-switch
+          label="Show Label"
+          :value="settings.showLabel"
           @input="() => toggleLabel()"
-        />
-        <label for="setting-label">Show Label</label>
-      </div>
-      <div class="setting">
-        <input
-          id="setting-analog"
-          type="checkbox"
-          v-model="settings.showAnalogClock"
+        ></sil-switch>
+
+        <sil-switch
+          label="Show Label"
+          :value="settings.showAnalogClock"
           @input="() => toggleAnalogClock()"
-        />
-        <label for="setting-analog">Show Analog clock</label>
-      </div>
-      <div class="setting">
-        <input
-          id="setting-digital"
-          type="checkbox"
-          v-model="settings.showDigitalClock"
+        ></sil-switch>
+
+        <sil-switch
+          label="Show Digital clock"
+          :value="settings.showDigitalClock"
           @input="() => toggleDigitalClock()"
-        />
-        <label for="setting-digital">Show Digital clock</label>
-      </div>
-      <div class="setting">
-        <input
-          id="setting-ticks"
-          type="checkbox"
-          v-model="settings.showTicks"
+        ></sil-switch>
+
+        <sil-switch
+          label="Show Ticks"
+          :value="settings.showDigitalClock"
           @input="() => toggleTicks()"
-        />
-        <label for="setting-ticks">Show Ticks</label>
-      </div>
-      <div class="setting">
-        <input
-          id="setting-numbers"
-          type="checkbox"
-          v-model="settings.showNumbers"
+        ></sil-switch>
+
+        <sil-switch
+          label="Show Numbers"
+          :value="settings.showNumbers"
           @input="() => toggleNumbers()"
-        />
-        <label for="setting-numbers">Show Numbers</label>
-      </div>
-      <div class="setting">
-        <input
-          id="setting-ontop"
-          type="checkbox"
-          v-model="settings.alwaysOnTop"
+        ></sil-switch>
+
+        <sil-switch
+          label="Show Always on Top"
+          :value="settings.alwaysOnTop"
           @input="() => toggleAlwaysOnTop()"
-        />
-        <label for="setting-ontop">Show Always on top</label>
-      </div>
-      <div class="setting">
-        <button @click="reset()">Reset</button>
-      </div>
+        ></sil-switch>
+        <sil-switch
+          label="Lock View"
+          :value="settings.lockedView"
+          @input="() => toggleLockedView()"
+        ></sil-switch>
+
+        <sil-button @click="doReset()">Reset</sil-button>
+        <sil-button @click="resizeNow()">Fit screen</sil-button>
+      </sil-stack>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from "vue";
+import { computed, ref } from "vue";
 //@ts-ignore
 import { useState } from "../../data/useState";
 import AddTimezone from "./AddTimezone.vue";
-import { reloadWindow } from "../renderer";
+import { reloadWindow, resizeNow } from "../renderer";
 import {
   eventBus,
   EventChannel,
@@ -145,11 +113,10 @@ import {
   EventData,
 } from "../composables/eventBus";
 import { TimeType, AnalogClockType } from "../types";
-import { getEnvironmentData } from "worker_threads";
 
 const visible = ref(false);
 
-const reset = () => {
+const doReset = () => {
   clearStorage();
   setTimeout(() => {
     initStorage();
@@ -159,27 +126,42 @@ const reset = () => {
   }, 100);
 };
 
+const TimeOptions = computed(() => {
+  return Object.values(TimeType).map((t) => ({ name: t, value: t }));
+});
+
+const ClockOptions = computed(() => {
+  return Object.values(AnalogClockType).map((t) => ({
+    name: t,
+    value: t,
+  }));
+});
+
 window.addEventListener("keydown", (e) => {
   if (!visible.value) return;
 
-  e.preventDefault();
-
-  const keyName = e.key;
-
-  switch (keyName) {
+  switch (e.key) {
     case "Escape":
       visible.value = false;
       break;
   }
 });
 
-eventBus.on(EventChannel.SETTINGS, (data: EventData) => {
-  if (data.type == EventType.SETTINGS_TOGGLE) {
-    visible.value = !visible.value;
-  } else if (data.type == EventType.SETTINGS_OFF) {
-    visible.value = false;
-  } else if (data.type == EventType.SETTINGS_ON) {
-    visible.value = true;
+const doSomething = () => {
+  console.log("hoiii");
+};
+
+eventBus.on(EventChannel.SETTINGS, (data) => {
+  switch ((data as EventData).type) {
+    case EventType.SETTINGS_TOGGLE:
+      visible.value = !visible.value;
+      break;
+    case EventType.SETTINGS_OFF:
+      visible.value = false;
+      break;
+    case EventType.SETTINGS_ON:
+      visible.value = true;
+      break;
   }
 });
 
@@ -196,6 +178,7 @@ const {
   toggleLabel,
   toggleTicks,
   toggleNumbers,
+  toggleLockedView,
   toggleAlwaysOnTop,
   clearStorage,
   initStorage,
@@ -204,6 +187,9 @@ const {
 
 <style lang="scss">
 .settings {
+  --switch-active-opacity: 1;
+  --switch-inactive-opacity: 0.25;
+
   position: fixed;
   width: 100%;
   height: 100%;
@@ -287,12 +273,13 @@ const {
     transform: translate(0%, -50%) scale(0.75);
     max-height: 80vh;
     overflow: scroll;
+    text-align: left;
   }
 }
-.setting {
-  display: flex;
-  gap: 1em;
-  text-align: left;
-  padding: 1em;
-}
+// .setting {
+//   display: flex;
+//   gap: 1em;
+//   text-align: left;
+//   padding: 1em;
+// }
 </style>

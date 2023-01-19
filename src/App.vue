@@ -39,6 +39,16 @@ loadBridge();
 </template>
 
 <style>
+
+
+:root{
+  --space: 1em;
+  --foreground: white;
+  --background: black;
+  --border-radius: .25em;
+}
+
+
 body,
 html {
   margin: 0;

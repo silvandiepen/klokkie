@@ -20,7 +20,10 @@ export const resizeNow = () => {
   });
 };
 export const reloadWindow = ()=>{
-    ipcRenderer.send('reload-me-now',{})
+  ipcRenderer.send('reload-me-now',{})
+}
+export const toggleDevtools = ()=>{
+  ipcRenderer.send('toggle-devtools',{})
 }
 
 export const setOnTop = (ontop: boolean)=>{
