@@ -59,7 +59,7 @@
         ></sil-switch>
 
         <sil-switch
-          label="Show Label"
+          label="Show Analog clock"
           :value="settings.showAnalogClock"
           @input="() => toggleAnalogClock()"
         ></sil-switch>

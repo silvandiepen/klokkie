@@ -47,7 +47,6 @@ onMounted(() => {
         new Date().toLocaleString("en", { timeZone: props.timezone })
       );
     }
-    // date.toLocaleString('en-US', { timezone: 'America/New_York'});
     time.hours = date.getHours();
     time.minutes = date.getMinutes();
     time.seconds = date.getSeconds();
@@ -55,7 +54,7 @@ onMounted(() => {
 });
 
 const select = () => {
-  if (settings.lockedView) return;
+  if (settings.value.lockedView) return;
   else {
     selected.value = !selected.value;
   }
